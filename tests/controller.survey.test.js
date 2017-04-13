@@ -5,6 +5,7 @@ chai.use(require('chai-shallow-deep-equal'));
 const { expect, request } = chai;
 const app = require('../server/index.js');
 const Survey = require('mongoose').model('Survey');
+const { MethodNotAllowed } = require('./helpers/methodNotAllowed.js');
 
 describe('Survey routes', () => {
   beforeEach((done) => {
@@ -15,85 +16,136 @@ describe('Survey routes', () => {
   });
 
   describe('/api/survey', () => {
-    describe('GET', (done) => {
-      it('should return 200 and all of user\'s surveys', () => {
+    describe('GET', () => {
+      it('should return 200 and all of user\'s surveys', (done) => {
         const expected = Survey.sample();
         Survey.create(expected)
-          .then(() => request(app).get('/api/surveys'))
+          .then(() =>
+            request(app)
+              .get('/api/surveys')
+              .send({ _name: 'testing', _hash: 'testing' })
+          )
           .then((response) => {
             expect(response).status(200);
             expect(response).to.be.json;
             expect(response.body.length);
             expect(response.body[0]).to.shallowDeepEqual(expected);
             done();
-          });
+          })
+          .catch((error) => { done(error); });
       });
 
-      it('should return 401 if user\'s not authenticated', () => {
-
+      it('should return 401 if user\'s not authenticated', (done) => {
+        const expected = Survey.sample();
+        Survey.create(expected)
+          .then(() =>
+            request(app)
+              .get('/api/surveys')
+          )
+          .then((response) => {
+            expect(response).status(401);
+            done();
+          })
+          .catch((error) => { done(error); });
       });
     });
 
     describe('POST', () => {
-      it('should return 201 when survey is created', () => {
+      it('should return 201 when survey is created', (done) => {
+        const expected = Survey.sample();
 
-      });
-
-      it('should return 400 if invalid input', () => {
-
-      });
-
-      it('should return 401 if user\'s not authenticated', () => {
-
-      });
-
-      it('should return 401 if user\'s not the owner', () => {
-
-      });
-    });
-
-    describe('PUT', () => {
-      it('should return 405 METHOD NOT ALLOWED', (done) => {
-        request(app).put('/api/surveys')
+        request(app)
+          .post('/api/surveys')
+          .send({ name: 'testing', hash: 'testing' })
+          .send(expected)
           .then((response) => {
-            expect(response).status(405);
+            expect(response).status(201);
             done();
-          });
+          })
+          .catch((error) => { done(error); });
       });
-    });
 
-    describe('PATCH', () => {
-      it('should return 405 METHOD NOT ALLOWED', (done) => {
-        request(app).patch('/api/surveys')
+      it('should return 400 if invalid input', (done) => {
+        request(app)
+          .post('/api/surveys')
+          .send({ name: 'testing', hash: 'testing' })
+          .send({ invalid: 'input' })
           .then((response) => {
-            expect(response).status(405);
+            expect(response).status(400);
             done();
-          });
+          })
+          .catch((error) => { done(error); });
+      });
+
+      it('should return 401 if user\'s not authenticated', (done) => {
+        const expected = Survey.sample();
+
+        request(app)
+          .post('/api/surveys')
+          .send(expected)
+          .then((response) => {
+            expect(response).status(401);
+            expect(response.body).to.not.exist;
+            done();
+          })
+          .catch((error) => { done(error); });
+      });
+
+      it('should return 401 if user\'s not the owner', (done) => {
+
       });
     });
 
-    describe('DELETE', () => {
-      it('should return 405 METHOD NOT ALLOWED', () => {
-        request(app).delete('/api/surveys')
-          .then((response) => {
-            expect(response).status(405);
-          });
-      });
-    });
+    describe('PUT', MethodNotAllowed('put', '/api/surveys'));
+
+    describe('PATCH', MethodNotAllowed('patch', '/api/surveys'));
+
+    describe('DELETE', MethodNotAllowed('delete', '/api/surveys'));
   });
 
-  xdescribe('/api/survey/:survey', () => {
+  describe('/api/survey/:survey', () => {
     describe('GET', () => {
-      it('should return 200 and specified survey', () => {
+      it('should return 200 and specified survey', (done) => {
+        const expected = Survey.sample();
 
+        Survey.create(expected)
+          .then(() => {
+            request(app)
+              .get('/api/survey/58ee63c65a2d576d5125b4bc');
+          })
+          .then((response) => {
+            expect(response).status(200);
+            expect(response).to.be.json;
+            expect(response.body.length);
+            expect(response.body).to.shallowDeepEqual(expected);
+            done();
+          })
+          .catch((error) => { done(error); });
       });
 
-      it('should return 404 if survey doesn\'t exist', () => {
-
+      it('should return 404 if survey doesn\'t exist', (done) => {
+        request(app)
+          .get('app/survey/invalidsurvey')
+          .then((response) => {
+            expect(response).status(404);
+            done();
+          })
+          .catch((error) => { done(error); });
       });
 
-      it('should return 401 if user\'s not authenticated', () => {
+      it('should return 401 if user\'s not authenticated', (done) => {
+        const expected = Survey.sample();
 
+        Survey.create(expected)
+          .then(() => {
+            request(app)
+              .get('/api/survey/58ee63c65a2d576d5125b4bc');
+          })
+          .then((response) => {
+            expect(response).status(401);
+            done();
+          })
+          .catch((error) => { done(error); });
       });
     });
 
@@ -129,26 +181,9 @@ describe('Survey routes', () => {
       });
     });
 
-    describe('PUT', () => {
-      it('should return 405 METHOD NOT ALLOWED', () => {
-        request(app).put('/api/surveys')
-          .then((response) => {
-            expect(response).status(405);
-          });
-      });
-    });
+    describe('PUT', MethodNotAllowed('put', '/api/surveys/58ee63c65a2d576d5125b4c5'));
 
-    describe('POST', () => {
-      it('should return 405 METHOD NOT ALLOWED', () => {
-        request(app).put('/api/surveys')
-          .then((response) => {
-            expect(response).status(405);
-          })
-          .catch((error) => {
-            throw error;
-          });
-      });
-    });
+    describe('POST', MethodNotAllowed('post', '/api/surveys/58ee63c65a2d576d5125b4c5'));
   });
 
   xdescribe('/api/survey/:survey/responses', () => {
@@ -170,41 +205,11 @@ describe('Survey routes', () => {
       });
     });
 
-    describe('PUT', () => {
-      it('should return 405 METHOD NOT ALLOWED', () => {
-        request(app).put('/api/surveys/58ee63c65a2d576d5125b4c5/responses')
-          .then((response) => {
-            expect(response).status(405);
-          })
-          .catch((error) => {
-            throw error;
-          });
-      });
-    });
+    describe('PUT', MethodNotAllowed('put', '/api/surveys/58ee63c65a2d576d5125b4c5/responses'));
 
-    describe('PATCH', () => {
-      it('should return 405 METHOD NOT ALLOWED', () => {
-        request(app).patch('/api/surveys/58ee63c65a2d576d5125b4c5/responses')
-          .then((response) => {
-            expect(response).status(405);
-          })
-          .catch((error) => {
-            throw error;
-          });
-      });
-    });
+    describe('PATCH', MethodNotAllowed('patch', '/api/surveys/58ee63c65a2d576d5125b4c5/responses'));
 
-    describe('DELETE', () => {
-      it('should return 405 METHOD NOT ALLOWED', () => {
-        request(app).delete('/api/surveys/58ee63c65a2d576d5125b4c5/responses')
-          .then((response) => {
-            expect(response).status(405);
-          })
-          .catch((error) => {
-            throw error;
-          });
-      });
-    });
+    describe('DELETE', MethodNotAllowed('delete', '/api/surveys/58ee63c65a2d576d5125b4c5/responses'));
   });
 
   xdescribe('/api/survey/:survey/responses/:response', () => {
@@ -226,40 +231,10 @@ describe('Survey routes', () => {
       });
     });
 
-    describe('PUT', () => {
-      it('should return 405 METHOD NOT ALLOWED', () => {
-        request(app).put('/api/surveys/58ee63c65a2d576d5125b4c5/responses/58ee6904fdebd16dfdd99f91')
-          .then((response) => {
-            expect(response).status(405);
-          })
-          .catch((error) => {
-            throw error;
-          });
-      });
-    });
+    describe('PUT', MethodNotAllowed('put', '/api/surveys/58ee63c65a2d576d5125b4c5/responses/58ee6904fdebd16dfdd99f91'));
 
-    describe('PATCH', () => {
-      it('should return 405 METHOD NOT ALLOWED', () => {
-        request(app).patch('/api/surveys/58ee63c65a2d576d5125b4c5/responses/58ee6904fdebd16dfdd99f91')
-          .then((response) => {
-            expect(response).status(405);
-          })
-          .catch((error) => {
-            throw error;
-          });
-      });
-    });
+    describe('PATCH', MethodNotAllowed('patch', '/api/surveys/58ee63c65a2d576d5125b4c5/responses/58ee6904fdebd16dfdd99f91'));
 
-    describe('DELETE', () => {
-      it('should return 405 METHOD NOT ALLOWED', () => {
-        request(app).delete('/api/surveys/58ee63c65a2d576d5125b4c5/responses/58ee6904fdebd16dfdd99f91')
-          .then((response) => {
-            expect(response).status(405);
-          })
-          .catch((error) => {
-            throw error;
-          });
-      });
-    });
+    describe('DELETE', MethodNotAllowed('delete', '/api/surveys/58ee63c65a2d576d5125b4c5/responses/58ee6904fdebd16dfdd99f91'));
   });
 });
