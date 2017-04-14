@@ -5,13 +5,17 @@ chai.use(require('chai-shallow-deep-equal'));
 const { expect, request } = chai;
 const app = require('../server/index.js');
 const Survey = require('mongoose').model('Survey');
+const User = require('mongoose').model('User');
 const { MethodNotAllowed } = require('./helpers/methodNotAllowed.js');
 
 describe('Survey routes', () => {
   beforeEach((done) => {
-    Survey.remove({}, done); // Empty the database to ensure predictablility
+    User.remove({});
+    Survey.remove({});
+    User.create({ name: 'testinguser', password: 'testinguser' }, done);
   });
   afterEach((done) => {
+    User.remove({});
     Survey.remove({}, done); // Empty the database to ensure predictablility
   });
 
@@ -98,8 +102,6 @@ describe('Survey routes', () => {
 
     describe('PUT', MethodNotAllowed('put', '/api/surveys'));
 
-    describe('PATCH', MethodNotAllowed('patch', '/api/surveys'));
-
     describe('DELETE', MethodNotAllowed('delete', '/api/surveys'));
   });
 
@@ -149,13 +151,40 @@ describe('Survey routes', () => {
       });
     });
 
-    describe('PATCH', () => {
-      it('should return 200 and update part of the survey', () => {
+    describe('PUT', () => {
+      it('should return 200 and update part of the survey', (done) => {
+        const expected = Survey.sample();
 
+        Survey.create(expected)
+          .then(() => {
+            request(app)
+              .put('/api/survey/58ee63c65a2d576d5125b4bc')
+              .send({ title: 'another title' });
+          })
+          .then((response) => {
+            expect(response).status(200);
+            expect(response).to.be.json;
+            expect(response.body.length);
+            expect(response.body.title).to.equal('another title');
+            done();
+          })
+          .catch((error) => { done(error); });
       });
 
-      it('should return 400 if invalid input', () => {
+      it('should return 400 if invalid input', (done) => {
+        const expected = Survey.sample();
 
+        Survey.create(expected)
+          .then(() => {
+            request(app)
+              .put('/api/survey/58ee63c65a2d576d5125b4bc')
+              .send({ not: 'invalid' });
+          })
+          .then((response) => {
+            expect(response).status(400);
+            done();
+          })
+          .catch((error) => { done(error); });
       });
 
       it('should return 401 if user\'s not authenticated', () => {
@@ -207,8 +236,6 @@ describe('Survey routes', () => {
 
     describe('PUT', MethodNotAllowed('put', '/api/surveys/58ee63c65a2d576d5125b4c5/responses'));
 
-    describe('PATCH', MethodNotAllowed('patch', '/api/surveys/58ee63c65a2d576d5125b4c5/responses'));
-
     describe('DELETE', MethodNotAllowed('delete', '/api/surveys/58ee63c65a2d576d5125b4c5/responses'));
   });
 
@@ -232,8 +259,6 @@ describe('Survey routes', () => {
     });
 
     describe('PUT', MethodNotAllowed('put', '/api/surveys/58ee63c65a2d576d5125b4c5/responses/58ee6904fdebd16dfdd99f91'));
-
-    describe('PATCH', MethodNotAllowed('patch', '/api/surveys/58ee63c65a2d576d5125b4c5/responses/58ee6904fdebd16dfdd99f91'));
 
     describe('DELETE', MethodNotAllowed('delete', '/api/surveys/58ee63c65a2d576d5125b4c5/responses/58ee6904fdebd16dfdd99f91'));
   });

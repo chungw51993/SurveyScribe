@@ -4,6 +4,7 @@ chai.use(require('chai-http'));
 const { expect, request } = chai;
 const app = require('../server/index.js');
 const User = require('mongoose').model('User');
+const { MethodNotAllowed } = require('./helpers/methodNotAllowed.js');
 
 xdescribe('User routes', () => {
   beforeEach((done) => {
@@ -38,23 +39,9 @@ xdescribe('User routes', () => {
       });
     });
 
-    describe('PUT', () => {
-      it('should return 405 METHOD NOT ALLOWED', () => {
+    describe('PUT', MethodNotAllowed('put', '/api/users'));
 
-      });
-    });
-
-    describe('PATCH', () => {
-      it('should return 405 METHOD NOT ALLOWED', () => {
-
-      });
-    });
-
-    describe('DELETE', () => {
-      it('should return 405 METHOD NOT ALLOWED', () => {
-
-      });
-    });
+    describe('DELETE', MethodNotAllowed('delete', '/api/users'));
   });
 
   describe('/api/users/:user', () => {
@@ -72,7 +59,7 @@ xdescribe('User routes', () => {
       });
     });
 
-    describe('PATCH', () => {
+    describe('PUT', () => {
       it('should return 201 and create new user', () => {
 
       });
@@ -100,16 +87,6 @@ xdescribe('User routes', () => {
       });
     });
 
-    describe('PUT', () => {
-      it('should return 405 METHOD NOT ALLOWED', () => {
-
-      });
-    });
-
-    describe('POST', () => {
-      it('should return 405 METHOD NOT ALLOWED', () => {
-
-      });
-    });
+    describe('POST', MethodNotAllowed('post', '/api/users/notallowed'));
   });
 });
