@@ -4,7 +4,7 @@ chai.use(require('chai-http'));
 const { expect, request } = chai;
 const app = require('../index.js');
 const User = require('mongoose').model('User');
-const { MethodNotAllowed } = require('./helpers/methodNotAllowed.js');
+const MethodNotAllowed = require('./helpers/methodNotAllowed.js');
 
 xdescribe('User routes', () => {
   beforeEach((done) => {

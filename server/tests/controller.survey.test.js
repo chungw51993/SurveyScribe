@@ -6,26 +6,22 @@ const { expect } = chai;
 const app = require('../index.js');
 const Survey = require('mongoose').model('Survey');
 const User = require('mongoose').model('User');
-const { MethodNotAllowed } = require('./helpers/methodNotAllowed.js');
+const MethodNotAllowed = require('./helpers/methodNotAllowed.js');
 
 const agent = chai.request.agent(app);
 
 describe('Survey routes', () => {
-  before((done) => {
-    User.create({ name: 'testinguser', password: 'testinguser123' }, done);
-  });
-
-  after((done) => {
-    User.remove({}, done);
-  });
-
   beforeEach((done) => {
-    Survey.remove({}, done);
+    Survey.remove({})
+    .then(() => User.remove({}))
+    .then(() => User.create({ name: 'testinguser', password: 'testinguser123' }))
+    .then(() => done());
   });
   afterEach((done) => {
-    Survey.remove({}, done);
+    Survey.remove({})
+    .then(() => User.remove({}))
+    .then(() => done());
   });
-
   describe('/api/survey', () => {
     describe('GET', () => {
       it('should return 200 and all of user\'s surveys', (done) => {
@@ -52,10 +48,8 @@ describe('Survey routes', () => {
       it('should return 401 if user\'s not authenticated', (done) => {
         const expected = Survey.sample();
         Survey.create(expected)
-          .then(() =>
-            agent.get('/api/surveys')
-          )
-          .then(done)
+          .then(() => agent.get('/api/surveys'))
+          .then(() => done())
           .catch((error) => {
             expect(error).status(401);
             done();
@@ -89,11 +83,11 @@ describe('Survey routes', () => {
           .then(() => {
             agent.post('/api/surveys')
               .send({ invalid: 'input' })
-              .then((response) => {
-                expect(response).status(400);
+              .then(done)
+              .catch((error) => {
+                expect(error).status(400);
                 done();
-              })
-              .catch(done);
+              });
           });
       });
 
@@ -102,7 +96,7 @@ describe('Survey routes', () => {
 
         agent.post('/api/surveys')
           .send(expected)
-          .then(done)
+          .then(() => done())
           .catch((error) => {
             expect(error).status(401);
             done();
@@ -113,10 +107,8 @@ describe('Survey routes', () => {
         done();
       });
     });
-
-    // describe('PUT', MethodNotAllowed('put', '/api/surveys'));
-
-    // describe('DELETE', MethodNotAllowed('delete', '/api/surveys'));
+    describe('PUT', MethodNotAllowed('put', '/api/surveys'));
+    describe('DELETE', MethodNotAllowed('delete', '/api/surveys'));
   });
 
   describe('/api/survey/:survey', () => {
@@ -147,10 +139,11 @@ describe('Survey routes', () => {
           .send({ name: 'testinguser', password: 'testinguser123' })
           .then(() => {
             agent.get('app/survey/invalidsurvey')
-              .then((response) => {
-                expect(response).status(404);
-              })
-              .catch(done);
+              .then(done)
+              .catch((error) => {
+                expect(error).status(404);
+                done();
+              });
           });
       });
 
@@ -161,7 +154,7 @@ describe('Survey routes', () => {
           .then(() => {
             agent.get('/api/survey/58ee63c65a2d576d5125b4bc');
           })
-          .then(done)
+          .then(() => done())
           .catch((error) => {
             expect(error).status(401);
             done();
@@ -202,11 +195,11 @@ describe('Survey routes', () => {
               .then(() => {
                 agent.put('/api/survey/58ee63c65a2d576d5125b4bc')
                   .send({ invalid: 'input' })
-                  .then((response) => {
-                    expect(response).status(400);
+                  .then(done)
+                  .catch((error) => {
+                    expect(error).status(400);
                     done();
-                  })
-                  .catch(done);
+                  });
               });
           });
       });
@@ -219,7 +212,7 @@ describe('Survey routes', () => {
             agent.put('/api/survey/58ee63c65a2d576d5125b4bc')
               .send({ title: 'not authenticated' });
           })
-          .then(done)
+          .then(() => done())
           .catch((error) => {
             expect(error).status(401);
             done();
@@ -259,7 +252,7 @@ describe('Survey routes', () => {
           .then(() => {
             agent.delete('/api/survey/58ee63c65a2d576d5125b4bc');
           })
-          .then(done)
+          .then(() => done())
           .catch((error) => {
             expect(error).status(401);
             done();
@@ -271,10 +264,10 @@ describe('Survey routes', () => {
       });
     });
 
-    // describe('POST', MethodNotAllowed('post', '/api/surveys/58ee63c65a2d576d5125b4c5'));
+    describe('POST', MethodNotAllowed('post', '/api/surveys/58ee63c65a2d576d5125b4c5'));
   });
 
-  xdescribe('/api/survey/:survey/responses', () => {
+  describe('/api/survey/:survey/responses', () => {
     describe('GET', () => {
       it('should return 200 and all of survey\'s responses', (done) => {
         const expected = Survey.sample();
@@ -305,11 +298,11 @@ describe('Survey routes', () => {
               .send({ name: 'testinguser', password: 'testinguser123' })
               .then(() => {
                 agent.get('/api/surveys/doesnotexist/responses')
-                  .then((response) => {
-                    expect(response).status(404);
+                  .then(done)
+                  .catch((error) => {
+                    expect(error).status(404);
                     done();
-                  })
-                  .catch(done);
+                  });
               })
           );
       });
@@ -321,7 +314,7 @@ describe('Survey routes', () => {
           .then(() => {
             agent.get('/api/surveys/58ee63c65a2d576d5125b4bc/responses');
           })
-          .then(done)
+          .then(() => done())
           .catch((error) => {
             expect(error).status(401);
             done();
@@ -333,9 +326,8 @@ describe('Survey routes', () => {
       });
     });
 
-    // describe('PUT', MethodNotAllowed('put', '/api/surveys/58ee63c65a2d576d5125b4c5/responses'));
-
-    // describe('DELETE', MethodNotAllowed('delete', '/api/surveys/58ee63c65a2d576d5125b4c5/responses'));
+    describe('PUT', MethodNotAllowed('put', '/api/surveys/58ee63c65a2d576d5125b4c5/responses'));
+    describe('DELETE', MethodNotAllowed('delete', '/api/surveys/58ee63c65a2d576d5125b4c5/responses'));
   });
 
   xdescribe('/api/survey/:survey/responses/:response', () => {
@@ -355,7 +347,7 @@ describe('Survey routes', () => {
                     expect(response.body.length);
                     done();
                   })
-                  .catch((error) => { done(error); });
+                  .catch(done);
               })
           );
       });
@@ -369,11 +361,11 @@ describe('Survey routes', () => {
               .send({ name: 'testinguser', password: 'testinguser123' })
               .then(() => {
                 agent.get('/api/surveys/58ee63c65a2d576d5125b4c5/responses/doesnotexist')
-                  .then((response) => {
-                    expect(response).status(404);
+                  .then(done)
+                  .catch((error) => {
+                    expect(error).status(404);
                     done();
-                  })
-                  .catch((error) => { done(error); });
+                  });
               })
           );
       });
@@ -396,9 +388,7 @@ describe('Survey routes', () => {
 
       });
     });
-
-    // describe('PUT', MethodNotAllowed('put', '/api/surveys/58ee63c65a2d576d5125b4c5/responses/58ee6904fdebd16dfdd99f91'));
-
-    // describe('DELETE', MethodNotAllowed('delete', '/api/surveys/58ee63c65a2d576d5125b4c5/responses/58ee6904fdebd16dfdd99f91'));
+    describe('PUT', MethodNotAllowed('put', '/api/surveys/58ee63c65a2d576d5125b4c5/responses/58ee6904fdebd16dfdd99f91'));
+    describe('DELETE', MethodNotAllowed('delete', '/api/surveys/58ee63c65a2d576d5125b4c5/responses/58ee6904fdebd16dfdd99f91'));
   });
 });
