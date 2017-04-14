@@ -2,11 +2,12 @@ const chai = require('chai');
 chai.use(require('chai-http'));
 chai.use(require('chai-shallow-deep-equal'));
 
-const { expect, request } = chai;
+const { expect } = chai;
 const app = require('../index.js');
 const Survey = require('mongoose').model('Survey');
 const User = require('mongoose').model('User');
 const { MethodNotAllowed } = require('./helpers/methodNotAllowed.js');
+const agent = chai.request.agent(app);
 
 describe('Survey routes', () => {
   before((done) => {
@@ -28,7 +29,6 @@ describe('Survey routes', () => {
     describe('GET', () => {
       it('should return 200 and all of user\'s surveys', (done) => {
         const expected = Survey.sample();
-        const agent = chai.request.agent(app);
 
         Survey.create(expected)
           .then(() =>
@@ -52,8 +52,7 @@ describe('Survey routes', () => {
         const expected = Survey.sample();
         Survey.create(expected)
           .then(() =>
-            request(app)
-              .get('/api/surveys')
+            agent.get('/api/surveys')
           )
           .then(done)
           .catch((error) => {
@@ -66,7 +65,6 @@ describe('Survey routes', () => {
     describe('POST', () => {
       it('should return 201 when survey is created', (done) => {
         const expected = Survey.sample();
-        const agent = chai.request.agent(app);
 
         agent.post('/api/login')
           .send({ name: 'testinguser', password: 'testinguser123' })
@@ -85,8 +83,6 @@ describe('Survey routes', () => {
       });
 
       it('should return 400 if invalid input', (done) => {
-        const agent = chai.request.agent(app);
-
         agent.post('/api/login')
           .send({ name: 'testinguser', password: 'testinguser123' })
           .then(() => {
@@ -103,8 +99,7 @@ describe('Survey routes', () => {
       it('should return 401 if user\'s not authenticated', (done) => {
         const expected = Survey.sample();
 
-        request(app)
-          .post('/api/surveys')
+        agent.post('/api/surveys')
           .send(expected)
           .then(done)
           .catch((error) => {
@@ -127,7 +122,6 @@ describe('Survey routes', () => {
     describe('GET', () => {
       it('should return 200 and specified survey', (done) => {
         const expected = Survey.sample();
-        const agent = chai.request.agent(app);
 
         Survey.create(expected)
           .then(() => {
@@ -148,8 +142,6 @@ describe('Survey routes', () => {
       });
 
       it('should return 404 if survey doesn\'t exist', (done) => {
-        const agent = chai.request.agent(app);
-
         agent.post('/api/login')
           .send({ name: 'testinguser', password: 'testinguser123' })
           .then(() => {
@@ -166,7 +158,7 @@ describe('Survey routes', () => {
 
         Survey.create(expected)
           .then(() => {
-            request(app)
+            agent(app)
               .get('/api/survey/58ee63c65a2d576d5125b4bc');
           })
           .then(done)
@@ -180,7 +172,6 @@ describe('Survey routes', () => {
     describe('PUT', () => {
       it('should return 200 and update part of the survey', (done) => {
         const expected = Survey.sample();
-        const agent = chai.request.agent(app);
 
         Survey.create(expected)
           .then(() => {
@@ -203,7 +194,6 @@ describe('Survey routes', () => {
 
       it('should return 400 if invalid input', (done) => {
         const expected = Survey.sample();
-        const agent = chai.request.agent(app);
 
         Survey.create(expected)
           .then(() => {
@@ -226,7 +216,7 @@ describe('Survey routes', () => {
 
         Survey.create(expected)
           .then(() => {
-            request.put('/api/survey/58ee63c65a2d576d5125b4bc')
+            agent.put('/api/survey/58ee63c65a2d576d5125b4bc')
               .send({ title: 'not authenticated' });
           })
           .then(done)
@@ -244,7 +234,6 @@ describe('Survey routes', () => {
     describe('DELETE', () => {
       it('should return 200 and delete the survey', (done) => {
         const expected = Survey.sample();
-        const agent = chai.request.agent(app);
 
         Survey.create(expected)
           .then(() => {
@@ -265,9 +254,10 @@ describe('Survey routes', () => {
       it('should return 401 if user\'s not authenticated', (done) => {
         const expected = Survey.sample();
 
+
         Survey.create(expected)
           .then(() => {
-            request.delete('/api/survey/58ee63c65a2d576d5125b4bc');
+            agent.delete('/api/survey/58ee63c65a2d576d5125b4bc');
           })
           .then(done)
           .catch((error) => {
