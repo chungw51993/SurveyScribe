@@ -7,6 +7,7 @@ const app = require('../index.js');
 const Survey = require('mongoose').model('Survey');
 const User = require('mongoose').model('User');
 const { MethodNotAllowed } = require('./helpers/methodNotAllowed.js');
+
 const agent = chai.request.agent(app);
 
 describe('Survey routes', () => {
@@ -158,8 +159,7 @@ describe('Survey routes', () => {
 
         Survey.create(expected)
           .then(() => {
-            agent(app)
-              .get('/api/survey/58ee63c65a2d576d5125b4bc');
+            agent.get('/api/survey/58ee63c65a2d576d5125b4bc');
           })
           .then(done)
           .catch((error) => {
@@ -278,7 +278,6 @@ describe('Survey routes', () => {
     describe('GET', () => {
       it('should return 200 and all of survey\'s responses', (done) => {
         const expected = Survey.sample();
-        const agent = chai.request.agent(app);
 
         Survey.create(expected)
           .then(() =>
@@ -299,7 +298,6 @@ describe('Survey routes', () => {
 
       it('should return 404 if survey doesn\'t exist', (done) => {
         const expected = Survey.sample();
-        const agent = chai.request.agent(app);
 
         Survey.create(expected)
           .then(() =>
@@ -321,7 +319,7 @@ describe('Survey routes', () => {
 
         Survey.create(expected)
           .then(() => {
-            request.get('/api/surveys/58ee63c65a2d576d5125b4bc/responses');
+            agent.get('/api/surveys/58ee63c65a2d576d5125b4bc/responses');
           })
           .then(done)
           .catch((error) => {
@@ -344,7 +342,6 @@ describe('Survey routes', () => {
     describe('GET', () => {
       it('should return 200 and specified response', (done) => {
         const expected = Survey.sample();
-        const agent = chai.request.agent(app);
 
         Survey.create(expected)
           .then(() =>
@@ -365,7 +362,6 @@ describe('Survey routes', () => {
 
       it('should return 404 if survey doesn\'t exist', (done) => {
         const expected = Survey.sample();
-        const agent = chai.request.agent(app);
 
         Survey.create(expected)
           .then(() =>
@@ -387,7 +383,7 @@ describe('Survey routes', () => {
 
         Survey.create(expected)
           .then(() => {
-            request.get('/api/surveys/58ee63c65a2d576d5125b4c5/responses/58ee6904fdebd16dfdd99f91');
+            agent.get('/api/surveys/58ee63c65a2d576d5125b4c5/responses/58ee6904fdebd16dfdd99f91');
           })
           .then((response) => { done(response); })
           .catch((error) => {
