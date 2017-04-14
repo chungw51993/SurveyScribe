@@ -6,7 +6,7 @@ const app = require('../index.js');
 const User = require('mongoose').model('User');
 const { MethodNotAllowed } = require('./helpers/methodNotAllowed.js');
 
-describe('User routes', () => {
+xdescribe('User routes', () => {
   beforeEach((done) => {
     User.remove({}, done); // Empty the database to ensure predictablility
   });
