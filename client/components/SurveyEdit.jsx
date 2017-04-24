@@ -70,6 +70,7 @@ const renderMessage = (props, question) => {
         <div>
           <TextField
             floatingLabelText="Max Selection"
+            defaultValue={question.maxSelection === 0 ? '' : question.maxSelection}
             hintText={props.questions[question.id].maxSelection.toString()}
             onChange={(e) => {
               props.editQuestion(question.id, 'Select', { maxSelection: Number(e.target.value), selected: 0 });
@@ -93,6 +94,7 @@ const renderMessage = (props, question) => {
                 props.editQuestion(question.id, 'Scale', { min: Number(e.target.value) });
               }
             }}
+            defaultValue={question.min}
           />
         </span>
         &nbsp;&nbsp;&nbsp;
@@ -108,6 +110,7 @@ const renderMessage = (props, question) => {
                 props.editQuestion(question.id, 'Scale', { max: Number(e.target.value) });
               }
             }}
+            defaultValue={question.max}
           />
         </span>
       </div>
@@ -121,6 +124,7 @@ const renderMessage = (props, question) => {
           onChange={(e) => {
             props.editQuestion(question.id, 'Text', { max: Number(e.target.value) });
           }}
+          defaultValue={question.max}
         />
       </div>
     );
