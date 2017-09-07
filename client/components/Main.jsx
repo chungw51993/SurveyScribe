@@ -2,7 +2,7 @@ import React from 'react';
 
 const Main = props =>
   (<div>
-    { React.cloneElement(props.children, props) }
+    { React.cloneElement(props.children, props)}
   </div>);
 
 Main.propTypes = {
